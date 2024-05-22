@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, ScrollView, Button } from 'react-native';
 
-import { refreshButton } from '../controllers/home-controller';
+import { Load } from './Load';
+import { loadPage } from '../controllers/Load-controller'
+
+import { refreshButton } from '../controllers/Home-controller';
 
 export default Home = () => {
   const [schedules, setSchedules] = useState([]);
@@ -18,14 +21,12 @@ export default Home = () => {
     const startIndex = (page - 1) * schedulePerPage;
     return schedules.slice(startIndex, startIndex + schedulePerPage);
   }
-  
   const nextPage = () => {
     if (page == amountPage) {
       return;
     }
     setPage(page => page + 1);
   }
-
   const previousPage = () => {
     if (page == 1) {
       return;
@@ -48,72 +49,85 @@ export default Home = () => {
     )
     const schedulesAvailable = (
       <View style={styles.schedule}> 
-      <ScrollView Vertical>
-
-        <ScrollView horizontal>
-          <View style={styles.tableContainer}>
-            <View style={styles.tableHeader}>
-              <Text style={styles.tableHeaderCell}>Mata Kuliah</Text>
-              <Text style={styles.tableHeaderCell}>Kelas</Text>
-              <Text style={styles.tableHeaderCell}>SKS</Text>
-              <Text style={styles.tableHeaderCell}>Hari</Text>
-              <Text style={styles.tableHeaderCell}>Jam</Text>
-              <Text style={styles.tableHeaderCell}>Ruangan</Text>
+        <ScrollView Vertical>
+          <ScrollView horizontal>
+            <View style={styles.tableContainer}>
+              <View style={styles.tableHeader}>
+                <Text style={styles.tableHeaderCell}>Mata Kuliah</Text>
+                <Text style={styles.tableHeaderCell}>Kelas</Text>
+                <Text style={styles.tableHeaderCell}>SKS</Text>
+                <Text style={styles.tableHeaderCell}>Hari</Text>
+                <Text style={styles.tableHeaderCell}>Jam</Text>
+                <Text style={styles.tableHeaderCell}>Ruangan</Text>
+              </View>
+              <FlatList
+                data={schedulesToShow}
+                renderItem={({ item }) => (
+                  <View style={styles.tableRow}>
+                    <Text style={styles.tableCell}>{item.mata_kuliah}</Text>
+                    <Text style={styles.tableCell}>{item.nama_kelas}</Text>
+                    <Text style={styles.tableCell}>{item.sks}</Text>
+                    <Text style={styles.tableCell}>{item.hari}</Text>
+                    <Text style={styles.tableCell}>{item.jam_mulai + " - " + item.jam_selesai}</Text>
+                    <Text style={styles.tableCell}>{item.ruangan}</Text>
+                  </View>
+                )}
+                keyExtractor={item => item.nama_kelas}
+              />
             </View>
-            <FlatList
-              data={schedulesToShow}
-              renderItem={({ item }) => (
-                <View style={styles.tableRow}>
-                  <Text style={styles.tableCell}>{item.mata_kuliah}</Text>
-                  <Text style={styles.tableCell}>{item.nama_kelas}</Text>
-                  <Text style={styles.tableCell}>{item.sks}</Text>
-                  <Text style={styles.tableCell}>{item.hari}</Text>
-                  <Text style={styles.tableCell}>{item.jam_mulai + " - " + item.jam_selesai}</Text>
-                  <Text style={styles.tableCell}>{item.ruangan}</Text>
-                </View>
-              )}
-              keyExtractor={item => item.nama_kelas}
+          </ScrollView>
+
+          <View style={styles.paginationContainer}>
+            <Button 
+              style={styles.paginationButton} 
+              title="<="
+              onPress={() => previousPage()}
+            />
+            <Text style={styles.paginationButton}>{page}</Text>
+            <Button 
+              style={styles.paginationButton} 
+              title="=>"
+              onPress={() => nextPage()}
             />
           </View>
         </ScrollView>
-        <View style={styles.paginationContainer}>
-          <Button 
-            style={styles.paginationButton} 
-            title="<="
-            onPress={() => previousPage()}
-          />
-          <Text style={styles.paginationButton}>{page}</Text>
-          <Button 
-            style={styles.paginationButton} 
-            title="=>"
-            onPress={() => nextPage()}
-          />
-        </View>
-      </ScrollView>
       </View>
     )
 
     return (
-    <View style={styles.scheduleView}>
+    <View style={styles.content}>
       <Button
         style={styles.refreshButton}
         title="Refresh"
-        onPress={() => refreshButton(setSchedules)}
+        onPress={ () => refreshButton(setSchedules) }
       />
       {schedules.length == 0 ? schedulesNotAvailable : schedulesAvailable}
     </View>
     )
   };
+  
+  const [isLoad, setIsLoad] = useState(true);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoad(false);
+      loadPage(setSchedules);
+    }, 1500); 
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          Jadwal Kuliah
-        </Text>
-      </View>
-      {schedulesView()}
+    <View style={{ flex: 1 }}>
+      {isLoad ? <Load /> : 
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.titleHeader}>
+              Jadwal Kuliah
+            </Text>
+          </View>
+          {schedulesView()}
+        </View>
+      }
     </View>
   );
 };
@@ -129,7 +143,7 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 15,
   },
-  title: {
+  titleHeader: {
     color: 'black',
     padding: 5,
     textAlign: 'left',
@@ -137,10 +151,10 @@ const styles = StyleSheet.create({
     fontSize: 28,
   }, 
   // view
-  scheduleView: {
+  content: {
     flex: 1,
   },
-  // schedules view
+  // schedules content
   schedule: {
     marginTop: 20,
   },
@@ -181,7 +195,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     width: 100,
   },
-  // no schedule view
+  // no schedule content
   noSchedule: {
     marginTop: 20,
     borderWidth: 1,
@@ -192,7 +206,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     padding: 20,
   },
-
   // button pagination
   paginationContainer: {
     flexDirection: 'row',
