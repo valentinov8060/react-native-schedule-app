@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, ScrollView, Button, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ScrollView, Button } from 'react-native';
+
+import { refreshButton } from '../controllers/home-controller';
 
 export default Home = () => {
   const [schedules, setSchedules] = useState([]);
@@ -7,16 +9,6 @@ export default Home = () => {
   const [schedulePerPage] = useState(10);
   const [amountPage, setAmountPage] = useState(Math.ceil(schedules.length / schedulePerPage));
   const [schedulesToShow, setSchedulesToShow] = useState([]);
-
-  const getSchedules = async () => {
-    try {
-      const response = await fetch('http://192.168.1.10:3000/schedule/list');
-      const json = await response.json();
-      setSchedules(json.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const schedulesPage = (schedules, page, schedulePerPage) => {
     if (page <= 0 || Math.ceil(schedules.length / schedulePerPage) < page) {
@@ -48,61 +40,71 @@ export default Home = () => {
     setSchedulesToShow(schedulesPage(schedules, page, schedulePerPage));
   }, [schedules, page]);
 
-  const renderSchedulesContent = () => {
-    if (schedulesToShow.length == 0) {
-      return (
-        <Text style={styles.alertNoSchedule}>
-          Jadwal tidak tersedia
-        </Text>
-      )
-    } else if (schedulesToShow.length > 0) {
-      return (
-        <View style={styles.schedulesContent}> 
-          <ScrollView horizontal>
-            <View style={styles.tableContainer}>
-              <View style={styles.tableHeader}>
-                <Text style={styles.tableHeaderCell}>Mata Kuliah</Text>
-                <Text style={styles.tableHeaderCell}>Kelas</Text>
-                <Text style={styles.tableHeaderCell}>SKS</Text>
-                <Text style={styles.tableHeaderCell}>Hari</Text>
-                <Text style={styles.tableHeaderCell}>Jam</Text>
-                <Text style={styles.tableHeaderCell}>Ruangan</Text>
-              </View>
+  const schedulesView = () => {
+    const schedulesNotAvailable = (
+      <Text style={styles.noSchedule}>
+        Tidak ada jadwal
+      </Text>
+    )
+    const schedulesAvailable = (
+      <View style={styles.schedule}> 
+      <ScrollView Vertical>
 
-              <FlatList
-                data={schedulesToShow}
-                renderItem={({ item }) => (
-                  <View style={styles.tableRow}>
-                    <Text style={styles.tableCell}>{item.mata_kuliah}</Text>
-                    <Text style={styles.tableCell}>{item.nama_kelas}</Text>
-                    <Text style={styles.tableCell}>{item.sks}</Text>
-                    <Text style={styles.tableCell}>{item.hari}</Text>
-                    <Text style={styles.tableCell}>{item.jam_mulai + " - " + item.jam_selesai}</Text>
-                    <Text style={styles.tableCell}>{item.ruangan}</Text>
-                  </View>
-                )}
-                keyExtractor={item => item.nama_kelas}
-              />
+        <ScrollView horizontal>
+          <View style={styles.tableContainer}>
+            <View style={styles.tableHeader}>
+              <Text style={styles.tableHeaderCell}>Mata Kuliah</Text>
+              <Text style={styles.tableHeaderCell}>Kelas</Text>
+              <Text style={styles.tableHeaderCell}>SKS</Text>
+              <Text style={styles.tableHeaderCell}>Hari</Text>
+              <Text style={styles.tableHeaderCell}>Jam</Text>
+              <Text style={styles.tableHeaderCell}>Ruangan</Text>
             </View>
-          </ScrollView>
-
-          <View style={styles.paginationContainer}>
-            <Button 
-              style={styles.paginationButton} 
-              title="<="
-              onPress={() => previousPage()}
-            />
-            <Text style={styles.paginationButton}>{page}</Text>
-            <Button 
-              style={styles.paginationButton} 
-              title="=>"
-              onPress={() => nextPage()}
+            <FlatList
+              data={schedulesToShow}
+              renderItem={({ item }) => (
+                <View style={styles.tableRow}>
+                  <Text style={styles.tableCell}>{item.mata_kuliah}</Text>
+                  <Text style={styles.tableCell}>{item.nama_kelas}</Text>
+                  <Text style={styles.tableCell}>{item.sks}</Text>
+                  <Text style={styles.tableCell}>{item.hari}</Text>
+                  <Text style={styles.tableCell}>{item.jam_mulai + " - " + item.jam_selesai}</Text>
+                  <Text style={styles.tableCell}>{item.ruangan}</Text>
+                </View>
+              )}
+              keyExtractor={item => item.nama_kelas}
             />
           </View>
+        </ScrollView>
+        <View style={styles.paginationContainer}>
+          <Button 
+            style={styles.paginationButton} 
+            title="<="
+            onPress={() => previousPage()}
+          />
+          <Text style={styles.paginationButton}>{page}</Text>
+          <Button 
+            style={styles.paginationButton} 
+            title="=>"
+            onPress={() => nextPage()}
+          />
         </View>
-      )
-    }
-  }
+      </ScrollView>
+      </View>
+    )
+
+    return (
+    <View style={styles.scheduleView}>
+      <Button
+        style={styles.refreshButton}
+        title="Refresh"
+        onPress={() => refreshButton(setSchedules)}
+      />
+      {schedules.length == 0 ? schedulesNotAvailable : schedulesAvailable}
+    </View>
+    )
+  };
+
 
   return (
     <View style={styles.container}>
@@ -110,13 +112,8 @@ export default Home = () => {
         <Text style={styles.title}>
           Jadwal Kuliah
         </Text>
-
-        <Button
-          title="Refresh"
-          onPress={() => getSchedules()}
-        />
       </View>
-      {renderSchedulesContent()}
+      {schedulesView()}
     </View>
   );
 };
@@ -139,15 +136,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 28,
   }, 
-  // schedules content
-  schedulesContent: {
+  // view
+  scheduleView: {
     flex: 1,
+  },
+  // schedules view
+  schedule: {
+    marginTop: 20,
   },
   tableContainer: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 5,
     minWidth: 700,
+    height: 550,
     marginBottom: 20,
   },
   tableHeader: {
@@ -179,9 +181,9 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     width: 100,
   },
-
-  // no schedule
-  alertNoSchedule: {
+  // no schedule view
+  noSchedule: {
+    marginTop: 20,
     borderWidth: 1,
     borderRadius: 5,
     borderColor: 'red',
