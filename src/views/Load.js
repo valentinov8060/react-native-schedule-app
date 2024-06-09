@@ -3,7 +3,7 @@ import { View, Text, Image, ActivityIndicator, StyleSheet } from 'react-native';
 
 const logoUnila = require('../../assets/images/logo-unila.png');
 
-const Load = () => {
+export default Load = () => {
 
   return (
     <View style={styles.container}>
@@ -36,7 +36,3 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 });
-
-export {
-  Load
-}

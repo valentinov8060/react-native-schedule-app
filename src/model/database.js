@@ -25,3 +25,21 @@ const openDatabase = async () => {
 }
 
 export default dbPromise = openDatabase();
+
+
+// Delete SQLite database
+/* import * as FileSystem from 'expo-file-system';
+const dbDir = FileSystem.documentDirectory + 'SQLite';
+const dbDirInfo = await FileSystem.getInfoAsync(dbDir);
+
+if (!dbDirInfo.exists) {
+  console.log('SQLite directory does not exist.');
+  return [];
+}
+const files = await FileSystem.readDirectoryAsync(dbDir);
+console.log('Databases:', files);
+
+const dbName = '...';
+const dbPath = FileSystem.documentDirectory + `SQLite/${dbName}`;
+await FileSystem.deleteAsync(dbPath, { idempotent: true });
+console.log(`Database ${dbName} deleted.`); */

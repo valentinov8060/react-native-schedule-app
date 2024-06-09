@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, ScrollView, Button } from 'react-native';
 
-import { Load } from './Load';
-import { loadPage } from '../controllers/Load-controller'
-
-import { refreshButton } from '../controllers/Home-controller';
+import { getSchedulesOnFirstLoad, refreshButton } from '../controllers/Home-controller';
 
 export default Home = () => {
   const [schedules, setSchedules] = useState([]);
@@ -15,7 +12,7 @@ export default Home = () => {
 
   const schedulesPage = (schedules, page, schedulePerPage) => {
     if (page <= 0 || Math.ceil(schedules.length / schedulePerPage) < page) {
-      console.error("Invalid page number lol");
+      console.error("Invalid page number");
       return;
     }
     const startIndex = (page - 1) * schedulePerPage;
@@ -50,6 +47,7 @@ export default Home = () => {
     const schedulesAvailable = (
       <View style={styles.schedule}> 
         <ScrollView Vertical>
+
           <ScrollView horizontal>
             <View style={styles.tableContainer}>
               <View style={styles.tableHeader}>
@@ -90,44 +88,37 @@ export default Home = () => {
               onPress={() => nextPage()}
             />
           </View>
+
         </ScrollView>
       </View>
     )
 
     return (
-    <View style={styles.content}>
-      <Button
-        style={styles.refreshButton}
-        title="Refresh"
-        onPress={ () => refreshButton(setSchedules) }
-      />
-      {schedules.length == 0 ? schedulesNotAvailable : schedulesAvailable}
-    </View>
+      <View style={styles.content}>
+        <Button
+          style={styles.refreshButton}
+          title="Refresh"
+          onPress={ () => refreshButton(setSchedules) }
+        />
+        {schedules.length == 0 ? schedulesNotAvailable : schedulesAvailable}
+      </View>
     )
   };
-  
-  const [isLoad, setIsLoad] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoad(false);
-      loadPage(setSchedules);
-    }, 1500); 
-    return () => clearTimeout(timer);
+    getSchedulesOnFirstLoad(setSchedules);
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      {isLoad ? <Load /> : 
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <Text style={styles.titleHeader}>
-              Jadwal Kuliah
-            </Text>
-          </View>
-          {schedulesView()}
-        </View>
-      }
+    <View style={styles.container}>
+
+      <View style={styles.header}>
+        <Text style={styles.titleHeader}>
+          Jadwal Kuliah
+        </Text>
+      </View>
+
+      {schedulesView()}
     </View>
   );
 };
@@ -157,6 +148,7 @@ const styles = StyleSheet.create({
   // schedules content
   schedule: {
     marginTop: 20,
+    marginBottom: 20,
   },
   tableContainer: {
     borderWidth: 1,
