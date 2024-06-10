@@ -38,6 +38,10 @@ export default Home = () => {
     setSchedulesToShow(schedulesPage(schedules, page, schedulePerPage));
   }, [schedules, page]);
 
+  useEffect(() => {
+    getSchedulesOnFirstLoad(setSchedules);
+  }, []);
+
   const schedulesView = () => {
     const schedulesNotAvailable = (
       <Text style={styles.noSchedule}>
@@ -98,16 +102,12 @@ export default Home = () => {
         <Button
           style={styles.refreshButton}
           title="Refresh"
-          onPress={ () => refreshButton(setSchedules) }
+          onPress={() => refreshButton(setSchedules)}
         />
         {schedules.length == 0 ? schedulesNotAvailable : schedulesAvailable}
       </View>
     )
   };
-
-  useEffect(() => {
-    getSchedulesOnFirstLoad(setSchedules);
-  }, []);
 
   return (
     <View style={styles.container}>
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 28,
   }, 
-  // view
+  // content
   content: {
     flex: 1,
   },

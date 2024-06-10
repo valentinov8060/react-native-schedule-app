@@ -22,14 +22,14 @@ export default Navigator = () => {
               icon = (
                 <Image
                   source={HomeIcon}
-                  style={{ width: size, height: size, tintColor: color }} // Adjust style as needed
+                  style={{ width: size, height: size, tintColor: color }}
                 />
               );
             } else if (route.name === 'Profile') {
               icon = (
                 <Image
                   source={ProfileIcon}
-                  style={{ width: size, height: size, tintColor: color }} // Adjust style as needed
+                  style={{ width: size, height: size, tintColor: color }}
                 />
               );
             }

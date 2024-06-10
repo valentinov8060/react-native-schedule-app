@@ -4,7 +4,7 @@
     "slug": "react-native-schedule-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/images/logo-unila.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",

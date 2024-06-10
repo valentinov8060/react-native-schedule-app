@@ -1,10 +1,12 @@
-import dbPromise from '../model/database';
+import dbPromise from '../model/connectDB';
+
+const apiUrl = process.env.API_URL;
 
 const getSchedulesOnFirstLoad = async (setLoadSchedules) => {
   try {
     const db = await dbPromise;
-    const result = await db.getAllAsync('SELECT * FROM schedules')
-    setLoadSchedules(result)
+    const schedules = await db.getAllAsync('SELECT * FROM schedules')
+    setLoadSchedules(schedules)
   } catch (error) {
     console.log(error)
   }
@@ -17,7 +19,7 @@ const refreshButton = async (setSchedules) => {
       setTimeout(() => reject(new Error('Request timed out')), 2000)
     );
     const response = await Promise.race([
-      fetch('http://192.168.1.19:3000/schedule/list'),
+      fetch(`${apiUrl}schedule/list`),
       timeout
     ]);
     // Check if the response is not okay (non-200 status code)
@@ -69,8 +71,8 @@ const refreshButton = async (setSchedules) => {
     // Load data from SQLite if fetch failed
     console.log("Attempting to load data from SQLite");
     const db = await dbPromise;
-    const result = await db.getAllAsync('SELECT * FROM schedules');
-    setSchedules(result);
+    const schedules = await db.getAllAsync('SELECT * FROM schedules');
+    setSchedules(schedules);
     console.log('Loaded from SQLite success');
   }
 }
