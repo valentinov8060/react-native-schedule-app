@@ -7,8 +7,8 @@ const apiUrl = process.env.API_URL;
 const checkTokenOnLoad = async (setLoginPage) => {
   try {
     /* console.log("apiUrl: ", apiUrl); */
-    // Get token from SQLite
     const db = await dbPromise;
+    // Get token from SQLite
     const getToken = await db.getFirstAsync('SELECT user_token FROM token;');
     const token = getToken.user_token;
     // Check if token is not found
@@ -97,6 +97,7 @@ const logoutButton = async (setLoginPage) => {
 const submitButton = async (reqBody, setModalVisible) => {
   try {
     const db = await dbPromise;
+    // Get token from SQLite
     const getToken = await db.getFirstAsync('SELECT user_token FROM token;');
     const token = getToken.user_token;
     // Check if token is not found
@@ -147,11 +148,22 @@ const submitButton = async (reqBody, setModalVisible) => {
 const getUserSchedules = async (setUserSchedules) => {
   try {
     const db = await dbPromise;
+    // Get token from SQLite
     const getToken = await db.getFirstAsync('SELECT user_token FROM token;');
     const token = getToken.user_token;
+    // Check if token is not found
+    if (!token) {
+      throw new Error('Token not found');
+    }
+    // Check if token is expired
     const decoded = jwtDecode(token);
-    const user = decoded.user;
+    if (decoded.exp * 1000 < Date.now()) {
+      await db.runAsync('UPDATE token SET user_token = ? WHERE id = ?', [null, 1])
+      throw new Error('Token has expired');
+    }
 
+    // Get user from decoded token
+    const user = decoded.user;
     console.log('User: ', user);
     // Fetch data from server
     const response = await fetch(`${apiUrl}schedule/user/${user}`);
@@ -181,10 +193,51 @@ const getUserSchedules = async (setUserSchedules) => {
   }
 }
 
+const deleteButton = async (id_mata_kuliah) => {
+  try {
+    const db = await dbPromise;
+    // Get token from SQLite
+    const getToken = await db.getFirstAsync('SELECT user_token FROM token;');
+    const token = getToken.user_token;
+    // Check if token is not found
+    if (!token) {
+      throw new Error('Token not found');
+    }
+    // Check if token is expired
+    const decoded = jwtDecode(token);
+    if (decoded.exp * 1000 < Date.now()) {
+      await db.runAsync('UPDATE token SET user_token = ? WHERE id = ?', [null, 1])
+      throw new Error('Token has expired');
+    }
+
+    // Delete schedule on server
+    const response = await fetch(`${apiUrl}schedule/remove/${id_mata_kuliah}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `${token}`,
+      },
+    })
+    // Check if the response is not okay (non-200 status code)
+    if (!response.ok) {
+      throw new Error(`Delete failed with status ${response.status}: ${response}`);
+    }
+    const json = await response.json();
+    console.log('Delete success: ', json.data);
+  } catch (error) {
+    if (error.name === 'TypeError') {
+      console.error('Error TypeError: ', error);
+    } else {
+      console.error('An error occurred: ', error.message);
+    }
+  }
+}
+
 export {
   checkTokenOnLoad,
   loginButton,
   logoutButton,
   submitButton,
-  getUserSchedules
+  getUserSchedules,
+  deleteButton
 }

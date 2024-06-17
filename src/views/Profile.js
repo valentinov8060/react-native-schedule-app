@@ -9,7 +9,8 @@ import {
   loginButton,
   logoutButton,
   submitButton,
-  getUserSchedules
+  getUserSchedules,
+  deleteButton
 } from '../controllers/Profile-controller';
 
 const logoUnila = require('../../assets/images/logo-unila.png');
@@ -52,6 +53,24 @@ export default Profile = () => {
       ...prevValue,
       [name]: value
     }));
+  };
+
+  const deleteAlert = (id_mata_kuliah) => {
+    Alert.alert(
+      "Konfirmasi",
+      "Apakah Anda yakin ingin menghapus jadwal ini?",
+      [
+        {
+          text: "Batal",
+          style: "cancel"
+        },
+        { 
+          text: "OK", 
+          onPress: () => deleteButton(id_mata_kuliah) 
+        }
+      ],
+      { cancelable: false }
+    );
   };
 
   // useEffect
@@ -106,7 +125,13 @@ export default Profile = () => {
                     <Text style={styles.tableCell}>{item.hari}</Text>
                     <Text style={styles.tableCell}>{item.jam_mulai + " - " + item.jam_selesai}</Text>
                     <Text style={styles.tableCell}>{item.ruangan}</Text>
-                    <Text style={styles.tableCell}>Tombol Delete</Text>
+                    <Text style={styles.tableCell}>
+                      <TouchableOpacity
+                        onPress={() => deleteAlert(item.id_mata_kuliah)} 
+                      >
+                        <Icon name="delete" type="material" size={24} />
+                      </TouchableOpacity>
+                    </Text>
                   </View>
                 )}
                 keyExtractor={item => item.nama_kelas}
@@ -136,7 +161,7 @@ export default Profile = () => {
           />
           
           <View style={styles.inputContainer}>
-            <Icon name="person" type="material" size={24} style={styles.icon} />
+            <Icon name="person" type="material" size={24} style={styles.iconLogin} />
             <TextInput
               style={styles.textInput}
               placeholder="User"
@@ -148,7 +173,7 @@ export default Profile = () => {
           </View>
 
           <View style={styles.inputContainer}>
-            <Icon name="lock" type="material" size={24} style={styles.icon} />
+            <Icon name="lock" type="material" size={24} style={styles.iconLogin} />
             <TextInput
               style={styles.textInput}
               placeholder="Password"
@@ -346,7 +371,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-  icon: {
+  iconLogin: {
     marginRight: 10,
   },
   textInput: {
