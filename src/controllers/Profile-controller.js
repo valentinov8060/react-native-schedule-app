@@ -7,11 +7,10 @@ const apiUrl = process.env.API_URL;
 const checkTokenOnLoad = async (setLoginPage) => {
   try {
     /* console.log("apiUrl: ", apiUrl); */
-
+    // Get token from SQLite
     const db = await dbPromise;
     const getToken = await db.getFirstAsync('SELECT user_token FROM token;');
     const token = getToken.user_token;
-
     // Check if token is not found
     if (!token) {
       throw new Error('Token not found');
@@ -145,28 +144,20 @@ const submitButton = async (reqBody, setModalVisible) => {
   }
 }
 
-/* const userSchedules = async (setUserSchedule, setLoginPage) => {
+const getUserSchedules = async (setUserSchedules) => {
   try {
     const db = await dbPromise;
     const getToken = await db.getFirstAsync('SELECT user_token FROM token;');
     const token = getToken.user_token;
-    // Check if token is not found
-    if (!token) {
-      throw new Error('Token not found');
-    }
-    // Check if token is expired
     const decoded = jwtDecode(token);
-    if (decoded.exp * 1000 < Date.now()) {
-      throw new Error('Token has expired');
-    }
-    setLoginPage(false);
     const user = decoded.user;
 
+    console.log('User: ', user);
     // Fetch data from server
-    const response = await fetch(`http://192.168.1.19:3000/schedule/user/${user}`);
+    const response = await fetch(`${apiUrl}schedule/user/${user}`);
     // Check if the response is not okay (non-200 status code)
     if (!response.ok) {
-      throw new Error(`Fetch failed with status ${response.status}: ${response.statusText}`);
+      throw new Error(`Fetch failed with status ${response.status}: ${response}`);
     }
     const json = await response.json();
     const data = json.data;
@@ -174,20 +165,26 @@ const submitButton = async (reqBody, setModalVisible) => {
     if (!data || !Array.isArray(json.data)) {
       throw new Error('Invalid data format received from server');
     }
-    setUserSchedule(data);
+    data.forEach(e => {
+      e.jam_mulai = e.jam_mulai.substring(0, 5)
+      e.jam_selesai = e.jam_selesai.substring(0, 5)
+    });
+    setUserSchedules(data);
+    console.log('Fetch user schedule success');
+
   } catch (error) {
     if (error.name === 'TypeError') {
       console.error('Error TypeError: ', error);
     } else {
       console.error('An error occurred: ', error.message);
     }
-    setLoginPage(true);
   }
-} */
+}
 
 export {
   checkTokenOnLoad,
   loginButton,
   logoutButton,
-  submitButton
+  submitButton,
+  getUserSchedules
 }

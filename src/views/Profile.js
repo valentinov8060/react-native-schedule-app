@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Button, Image, Modal, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Button, Image, Modal, TouchableOpacity, Alert, TextInput, FlatList } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { Icon } from 'react-native-elements';
 import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { 
   checkTokenOnLoad, 
   loginButton,
   logoutButton,
-  submitButton
+  submitButton,
+  getUserSchedules
 } from '../controllers/Profile-controller';
 
 const logoUnila = require('../../assets/images/logo-unila.png');
@@ -36,16 +36,15 @@ export default Profile = () => {
     jam_selesai: '',
     ruangan: ''
   });
-
-  // timepicker
   const [selectedHourJamMulai, setSelectedHourJamMulai] = useState('00');
   const [selectedMinuteJamMulai, setSelectedMinuteJamMulai] = useState('00');
   const [selectedHourJamSelesai, setSelectedHourJamSelesai] = useState('00');
   const [selectedMinuteJamSelesai, setSelectedMinuteJamSelesai] = useState('00');
-
   const hours = Array.from({ length: 12 }, (_, i) => (i + 7).toString().padStart(2, '0'));
   const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
-  // end timepicker
+
+  // User schedules
+  const [userSchedules, setUserSchedules] = useState([]);
 
   // Function
   const handleInput = (setter, name, value) => {
@@ -58,6 +57,10 @@ export default Profile = () => {
   // useEffect
   useEffect(() => {
     checkTokenOnLoad(setLoginPage);
+    
+    if (loginPage === false) {
+      getUserSchedules(setUserSchedules);
+    }
   },[isFocused]);
 
   useEffect(() => {
@@ -72,6 +75,56 @@ export default Profile = () => {
   }, [selectedHourJamMulai, selectedMinuteJamMulai, selectedHourJamSelesai, selectedMinuteJamSelesai]);
 
   // Page view
+  const userSchedulesView = () => {
+    const userSchedulesNotAvailable = (
+      <Text style={styles.noSchedule}>
+        Tidak ada jadwal
+      </Text>
+    )
+    const userSchedulesAvailable = (
+      <View style={styles.schedule}> 
+        <ScrollView Vertical>
+
+          <ScrollView horizontal>
+            <View style={styles.tableContainer}>
+              <View style={styles.tableHeader}>
+                <Text style={styles.tableHeaderCell}>Mata Kuliah</Text>
+                <Text style={styles.tableHeaderCell}>Kelas</Text>
+                <Text style={styles.tableHeaderCell}>SKS</Text>
+                <Text style={styles.tableHeaderCell}>Hari</Text>
+                <Text style={styles.tableHeaderCell}>Jam</Text>
+                <Text style={styles.tableHeaderCell}>Ruangan</Text>
+                <Text style={styles.tableHeaderCell}>Tools</Text>
+              </View>
+              <FlatList
+                data={userSchedules}
+                renderItem={({ item }) => (
+                  <View style={styles.tableRow}>
+                    <Text style={styles.tableCell}>{item.mata_kuliah}</Text>
+                    <Text style={styles.tableCell}>{item.nama_kelas}</Text>
+                    <Text style={styles.tableCell}>{item.sks}</Text>
+                    <Text style={styles.tableCell}>{item.hari}</Text>
+                    <Text style={styles.tableCell}>{item.jam_mulai + " - " + item.jam_selesai}</Text>
+                    <Text style={styles.tableCell}>{item.ruangan}</Text>
+                    <Text style={styles.tableCell}>Tombol Delete</Text>
+                  </View>
+                )}
+                keyExtractor={item => item.nama_kelas}
+              />
+            </View>
+          </ScrollView>
+
+        </ScrollView>
+      </View>
+    )
+
+    return (
+      <View style={styles.content}>
+        {userSchedules.length == 0 ? userSchedulesNotAvailable : userSchedulesAvailable}
+      </View>
+    )
+  };
+
   const pageView = () => {
     if (loginPage === true) {
       return (
@@ -117,7 +170,7 @@ export default Profile = () => {
         // Profile page
         <View style={styles.profilePage}>
           <Text style={styles.titleHeader}>
-            Jadwal Kuliah
+            Jadwal Kuliah Anda
           </Text>
           <View style={styles.buttonHeader}>
             <Button 
@@ -253,6 +306,7 @@ export default Profile = () => {
             </View>
           </Modal>
 
+          {userSchedulesView()}
         </View>
       );
     }
@@ -324,7 +378,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-
   // modal input jadwal kuliah
   centeredView: {
     flex: 1,
@@ -398,5 +451,63 @@ const styles = StyleSheet.create({
   separatorJam: {
     fontSize: 24,
     marginHorizontal: 5,
+  },
+
+  // content
+  content: {
+    flex: 1,
+  },
+  // schedules content
+  schedule: {
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  tableContainer: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    minWidth: 700,
+    height: 550,
+    marginBottom: 20,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#f1f1f1',
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+  },
+  tableHeaderCell: {
+    fontWeight: 'bold',
+    padding: 10,
+    flex: 1,
+    textAlign: 'center',
+    borderRightWidth: 1,
+    borderColor: '#ddd',
+    width: 100,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+  },
+  tableCell: {
+    padding: 10,
+    flex: 1,
+    textAlign: 'center',
+    padding: 10,
+    borderRightWidth: 1,
+    borderColor: '#ddd',
+    width: 100,
+  },
+  // no schedule content
+  noSchedule: {
+    marginTop: 20,
+    borderWidth: 1,
+    borderRadius: 5,
+    borderColor: 'red',
+    backgroundColor: '#f4cccc',
+    color: 'red',
+    textAlign: 'center',
+    padding: 20,
   },
 });
