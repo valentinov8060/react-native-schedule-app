@@ -81,13 +81,11 @@ export default Home = () => {
 
           <View style={styles.paginationContainer}>
             <Button 
-              style={styles.paginationButton} 
               title="<="
               onPress={() => previousPage()}
             />
-            <Text style={styles.paginationButton}>{page}</Text>
+            <Text style={styles.paginationNumber}>{page}</Text>
             <Button 
-              style={styles.paginationButton} 
               title="=>"
               onPress={() => nextPage()}
             />
@@ -100,7 +98,6 @@ export default Home = () => {
     return (
       <View style={styles.content}>
         <Button
-          style={styles.refreshButton}
           title="Refresh"
           onPress={() => refreshButton(setSchedules)}
         />
@@ -205,7 +202,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-  paginationButton: {
+  paginationNumber: {
     marginHorizontal: 5,
     padding: 10,
     backgroundColor: '#eee',

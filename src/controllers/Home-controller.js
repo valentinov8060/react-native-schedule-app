@@ -8,20 +8,19 @@ const getSchedulesOnFirstLoad = async (setLoadSchedules) => {
     const schedules = await db.getAllAsync('SELECT * FROM schedules')
     setLoadSchedules(schedules)
   } catch (error) {
-    console.log(error)
+    if (error.name === 'TypeError') {
+      console.error('Error TypeError: ', error);
+    } else {
+      console.error('An error occurred: ', error.message);
+    }
   }
 }
 
 const refreshButton = async (setSchedules) => {
   try {
-    // Fetch data from server 2 seconds timeout
-    const timeout = new Promise((resolve, reject) => 
-      setTimeout(() => reject(new Error('Request timed out')), 2000)
-    );
-    const response = await Promise.race([
-      fetch(`${apiUrl}schedule/list`),
-      timeout
-    ]);
+    /* console.log('apiUrl: ', apiUrl); */
+    // Fetch data from server
+    const response = await fetch(`${apiUrl}schedule/list`);
     // Check if the response is not okay (non-200 status code)
     if (!response.ok) {
       throw new Error(`Fetch failed with status ${response.status}: ${response.statusText}`);
@@ -32,8 +31,12 @@ const refreshButton = async (setSchedules) => {
     if (!data || !Array.isArray(json.data)) {
       throw new Error('Invalid data format received from server');
     }
+    data.forEach(e => {
+      e.jam_mulai = e.jam_mulai.substring(0, 5)
+      e.jam_selesai = e.jam_selesai.substring(0, 5)
+    });
     setSchedules(data);
-    console.log('Fetch success');
+    console.log('Fetch schedule success');
 
     // Insert data to SQLite
     console.log('Inserting data to SQLite');
@@ -73,7 +76,6 @@ const refreshButton = async (setSchedules) => {
     const db = await dbPromise;
     const schedules = await db.getAllAsync('SELECT * FROM schedules');
     setSchedules(schedules);
-    console.log('Loaded from SQLite success');
   }
 }
 
