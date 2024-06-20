@@ -77,10 +77,16 @@ export default Profile = () => {
   useEffect(() => {
     checkTokenOnLoad(setLoginPage);
     
+    /* if (loginPage === false) {
+      getUserSchedules(setUserSchedules);
+    } */
+  },[isFocused]);
+
+  useEffect(() => {
     if (loginPage === false) {
       getUserSchedules(setUserSchedules);
     }
-  },[isFocused]);
+  }, [loginPage])
 
   useEffect(() => {
     if (modalVisible === true) {
