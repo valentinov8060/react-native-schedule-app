@@ -66,7 +66,10 @@ export default Profile = () => {
         },
         { 
           text: "OK", 
-          onPress: () => deleteButton(id_mata_kuliah) 
+          onPress: () => {
+            deleteButton(id_mata_kuliah) 
+            getUserSchedules(setUserSchedules);
+          }
         }
       ],
       { cancelable: false }
@@ -76,17 +79,13 @@ export default Profile = () => {
   // useEffect
   useEffect(() => {
     checkTokenOnLoad(setLoginPage);
-    
-    /* if (loginPage === false) {
-      getUserSchedules(setUserSchedules);
-    } */
   },[isFocused]);
 
   useEffect(() => {
     if (loginPage === false) {
       getUserSchedules(setUserSchedules);
     }
-  }, [loginPage])
+  }, [loginPage]);
 
   useEffect(() => {
     if (modalVisible === true) {
@@ -107,44 +106,38 @@ export default Profile = () => {
       </Text>
     )
     const userSchedulesAvailable = (
-      <View style={styles.schedule}> 
-        <ScrollView Vertical>
-
-          <ScrollView horizontal>
-            <View style={styles.tableContainer}>
-              <View style={styles.tableHeader}>
-                <Text style={styles.tableHeaderCell}>Mata Kuliah</Text>
-                <Text style={styles.tableHeaderCell}>Kelas</Text>
-                <Text style={styles.tableHeaderCell}>SKS</Text>
-                <Text style={styles.tableHeaderCell}>Hari</Text>
-                <Text style={styles.tableHeaderCell}>Jam</Text>
-                <Text style={styles.tableHeaderCell}>Ruangan</Text>
-                <Text style={styles.tableHeaderCell}>Tools</Text>
-              </View>
-              <FlatList
-                data={userSchedules}
-                renderItem={({ item }) => (
-                  <View style={styles.tableRow}>
-                    <Text style={styles.tableCell}>{item.mata_kuliah}</Text>
-                    <Text style={styles.tableCell}>{item.nama_kelas}</Text>
-                    <Text style={styles.tableCell}>{item.sks}</Text>
-                    <Text style={styles.tableCell}>{item.hari}</Text>
-                    <Text style={styles.tableCell}>{item.jam_mulai + " - " + item.jam_selesai}</Text>
-                    <Text style={styles.tableCell}>{item.ruangan}</Text>
-                    <Text style={styles.tableCell}>
-                      <TouchableOpacity
-                        onPress={() => deleteAlert(item.id_mata_kuliah)} 
-                      >
-                        <Icon name="delete" type="material" size={24} />
-                      </TouchableOpacity>
-                    </Text>
-                  </View>
-                )}
-                keyExtractor={item => item.nama_kelas}
-              />
+      <View style={styles.schedule}>
+        <ScrollView horizontal>
+          <View style={styles.tableContainer}>
+            <View style={styles.tableHeader}>
+              <Text style={styles.tableHeaderCell}>Mata Kuliah</Text>
+              <Text style={styles.tableHeaderCell}>Kelas</Text>
+              <Text style={styles.tableHeaderCell}>SKS</Text>
+              <Text style={styles.tableHeaderCell}>Hari</Text>
+              <Text style={styles.tableHeaderCell}>Jam</Text>
+              <Text style={styles.tableHeaderCell}>Ruangan</Text>
+              <Text style={styles.tableHeaderCell}>Tools</Text>
             </View>
-          </ScrollView>
-
+            <FlatList
+              data={userSchedules}
+              renderItem={({ item }) => (
+                <View style={styles.tableRow}>
+                  <Text style={styles.tableCell}>{item.mata_kuliah}</Text>
+                  <Text style={styles.tableCell}>{item.nama_kelas}</Text>
+                  <Text style={styles.tableCell}>{item.sks}</Text>
+                  <Text style={styles.tableCell}>{item.hari}</Text>
+                  <Text style={styles.tableCell}>{item.jam_mulai + " - " + item.jam_selesai}</Text>
+                  <Text style={styles.tableCell}>{item.ruangan}</Text>
+                  <Text style={styles.tableCell}>
+                    <TouchableOpacity onPress={() => deleteAlert(item.id_mata_kuliah)}>
+                      <Icon name="delete" type="material" size={24} />
+                    </TouchableOpacity>
+                  </Text>
+                </View>
+              )}
+              keyExtractor={item => item.nama_kelas}
+            />
+          </View>
         </ScrollView>
       </View>
     )
@@ -228,7 +221,6 @@ export default Profile = () => {
               <View style={styles.modalView}>
                 <ScrollView contentContainerStyle={styles.modalScrollView}>
                   <Text style={styles.modalText}>Form Jadwal Kuliah</Text>
-
                   <TextInput
                     style={styles.input}
                     placeholder="Mata Kuliah"
@@ -248,9 +240,6 @@ export default Profile = () => {
                     keyboardType="numeric"
                     onChangeText={(value) => handleInput(setReqBodyScheduleCreate, 'sks', value)}
                   />
-                  <Text>
-                    {'Pilih Hari : '}
-                  </Text>
                   <Picker
                     mode="dropdown"
                     selectedValue={reqBodyScheduleCreate.hari}
@@ -259,6 +248,7 @@ export default Profile = () => {
                       handleInput(setReqBodyScheduleCreate, 'hari', itemValue)
                     }
                   >
+                    <Picker.Item label="Pilih Hari:" />
                     <Picker.Item label="Senin" value="Senin" />
                     <Picker.Item label="Selasa" value="Selasa" />
                     <Picker.Item label="Rabu" value="Rabu" />
@@ -320,7 +310,10 @@ export default Profile = () => {
                   <View style={styles.modalButtonContainer}>
                     <TouchableOpacity
                       style={[styles.modalButton, styles.modalButtonSubmit]}
-                      onPress={() => submitButton(reqBodyScheduleCreate, setModalVisible)}
+                      onPress={() => {
+                        submitButton(reqBodyScheduleCreate, setModalVisible)
+                        getUserSchedules(setUserSchedules)
+                      }}
                     >
                       <Text style={styles.textStyle}>Submit</Text>
                     </TouchableOpacity>
@@ -331,7 +324,6 @@ export default Profile = () => {
                       <Text style={styles.textStyle}>Cancel</Text>
                     </TouchableOpacity>
                   </View>
-
                 </ScrollView>
               </View>
             </View>
@@ -490,15 +482,16 @@ const styles = StyleSheet.create({
   },
   // schedules content
   schedule: {
+    flex: 1,
     marginTop: 20,
     marginBottom: 20,
   },
   tableContainer: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 5,
     minWidth: 700,
-    height: 550,
     marginBottom: 20,
   },
   tableHeader: {

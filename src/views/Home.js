@@ -7,7 +7,7 @@ export default Home = () => {
   const [schedules, setSchedules] = useState([]);
   const [page, setPage] = useState(1);
   const [schedulePerPage] = useState(10);
-  const [amountPage, setAmountPage] = useState(Math.ceil(schedules.length / schedulePerPage));
+  const [amountPage, setAmountPage] = useState(1);
   const [schedulesToShow, setSchedulesToShow] = useState([]);
 
   const schedulesPage = (schedules, page, schedulePerPage) => {
@@ -19,6 +19,7 @@ export default Home = () => {
     return schedules.slice(startIndex, startIndex + schedulePerPage);
   }
   const nextPage = () => {
+    setAmountPage(Math.ceil(schedules.length / schedulePerPage));
     if (page == amountPage) {
       return;
     }
@@ -50,8 +51,6 @@ export default Home = () => {
     )
     const schedulesAvailable = (
       <View style={styles.schedule}> 
-        <ScrollView Vertical>
-
           <ScrollView horizontal>
             <View style={styles.tableContainer}>
               <View style={styles.tableHeader}>
@@ -62,6 +61,7 @@ export default Home = () => {
                 <Text style={styles.tableHeaderCell}>Jam</Text>
                 <Text style={styles.tableHeaderCell}>Ruangan</Text>
               </View>
+
               <FlatList
                 data={schedulesToShow}
                 renderItem={({ item }) => (
@@ -90,8 +90,6 @@ export default Home = () => {
               onPress={() => nextPage()}
             />
           </View>
-
-        </ScrollView>
       </View>
     )
 
@@ -144,15 +142,15 @@ const styles = StyleSheet.create({
   },
   // schedules content
   schedule: {
+    flex: 1,
     marginTop: 20,
     marginBottom: 20,
   },
   tableContainer: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 5,
-    minWidth: 700,
-    height: 550,
     marginBottom: 20,
   },
   tableHeader: {
@@ -200,7 +198,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
   },
   paginationNumber: {
     marginHorizontal: 5,

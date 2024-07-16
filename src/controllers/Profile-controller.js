@@ -37,7 +37,7 @@ const loginButton = async (reqBody, setLoginPage, setLoginErrorMessage) => {
     const db = await dbPromise;
     // Login from server 2 seconds timeout
     const timeout = new Promise((resolve, reject) => 
-      setTimeout(() => reject(new Error('Cannot connect to server')), 2000)
+      setTimeout(() => reject(new Error('Cannot connect to server')), 5000)
     );
     const response = await Promise.race([
       fetch(`${apiUrl}user/login`, {
@@ -84,6 +84,7 @@ const logoutButton = async (setLoginPage) => {
   try {
     const db = await dbPromise;
     await db.runAsync('UPDATE token SET user_token = ? WHERE id = ?', [null, 1])
+    console.log('Logout success');
     setLoginPage(true)
   } catch {
     if (error.name === 'TypeError') {
