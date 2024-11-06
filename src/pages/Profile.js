@@ -11,11 +11,11 @@ import {
   submitButton,
   getUserSchedules,
   deleteButton
-} from '../controllers/Profile-controller';
+} from '../services/Profile-services';
 
 const logoUnila = require('../../assets/images/logo-unila.png');
 
-export default Profile = () => {
+const Profile = () => {
   const isFocused = useIsFocused();
 
   // Login 
@@ -186,7 +186,7 @@ export default Profile = () => {
             title="Login" 
             onPress={() => loginButton(reqBodyLogin, setLoginPage, setLoginErrorMessage)}
           />
-          {loginErrorMessage && <Text style={styles.errorText}>{loginErrorMessage}</Text>}
+          {Boolean(loginErrorMessage) && <Text style={styles.errorText}>{loginErrorMessage}</Text>}
         </View>
       )
     } else if (loginPage === false) {
@@ -341,6 +341,7 @@ export default Profile = () => {
     </View>
   );
 }
+export default Profile;
 
 const styles = StyleSheet.create({
   container: {
@@ -515,7 +516,6 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
   },
   tableCell: {
-    padding: 10,
     flex: 1,
     textAlign: 'center',
     padding: 10,

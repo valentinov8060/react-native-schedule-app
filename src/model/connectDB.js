@@ -18,14 +18,15 @@ const openDatabase = async () => {
     CREATE TABLE IF NOT EXISTS token (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       user_token TEXT
-    );`
+    );
+    INSERT OR IGNORE INTO token (id, user_token) VALUES (1, null);`
   );
 
-  return db
+  return db;
 }
 
-export default dbPromise = openDatabase();
-
+const dbPromise = openDatabase();
+export default dbPromise;
 
 // Delete SQLite database
 /* import * as FileSystem from 'expo-file-system';

@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, ScrollView, Button } from 'react-native';
 
-import { getSchedulesOnFirstLoad, refreshButton } from '../controllers/Home-controller';
+import { 
+  getSchedulesOnFirstLoad, 
+  refreshButton 
+} from '../services/Home-services';
 
-export default Home = () => {
+const Home = () => {
   const [schedules, setSchedules] = useState([]);
   const [page, setPage] = useState(1);
   const [schedulePerPage] = useState(10);
@@ -117,6 +120,7 @@ export default Home = () => {
     </View>
   );
 };
+export default Home;
 
 const styles = StyleSheet.create({
   container: {
@@ -174,7 +178,6 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
   },
   tableCell: {
-    padding: 10,
     flex: 1,
     textAlign: 'center',
     padding: 10,

@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View } from 'react-native';
 
-import Load from './src/views/Load';
-import Home from './src/views/Home';
-import Profile from './src/views/Profile';
+import Load from './src/pages/Load';
+import Navigator from './src/navigation/Navigator';
 
-import Navigator from './src/components/Navigator';
-
-export default App = () => {
+const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -28,3 +25,4 @@ export default App = () => {
     </View>
   );
 };
+export default App;

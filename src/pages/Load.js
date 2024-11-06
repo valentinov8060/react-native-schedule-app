@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, Image, ActivityIndicator, StyleSheet } from 'react-native';
 
 const logoUnila = require('../../assets/images/logo-unila.png');
 
-export default Load = () => {
-
+const Load = () => {
   return (
     <View style={styles.container}>
       <Image
@@ -16,6 +15,7 @@ export default Load = () => {
     </View>
   );
 };
+export default Load;
 
 const styles = StyleSheet.create({
   container: {

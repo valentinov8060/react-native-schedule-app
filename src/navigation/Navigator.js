@@ -1,17 +1,16 @@
 import React from 'react';
-import { View, Text, Image, ActivityIndicator, StyleSheet } from 'react-native';
+import { Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+const Tab = createBottomTabNavigator();
 import { NavigationContainer } from '@react-navigation/native';
 
-const Tab = createBottomTabNavigator();
-
-import Home from '../views/Home';
-import Profile from '../views/Profile';
+import Home from '../pages/Home';
+import Profile from '../pages/Profile';
 
 const HomeIcon = require('../../assets/icon/icon-home-page.png');
 const ProfileIcon = require('../../assets/icon/icon-profile-page.png');
 
-export default Navigator = () => {
+const Navigator = () => {
   return (
     <NavigationContainer>
       <Tab.Navigator
@@ -46,3 +45,4 @@ export default Navigator = () => {
     </NavigationContainer>
   );
 };
+export default Navigator;
