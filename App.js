@@ -5,19 +5,18 @@ import Load from './src/pages/Load';
 import Navigator from './src/navigation/Navigator';
 
 const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadPage, setLoadPage] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
+    setTimeout(() => {
+      setLoadPage(false);
     }, 2000);
 
-    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      {isLoading ? 
+    <View style={{ flex: 1, flexDirection: 'column' }}>
+      { loadPage ? 
         <Load /> 
         : 
         <Navigator />

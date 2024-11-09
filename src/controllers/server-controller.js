@@ -1,6 +1,7 @@
 const apiUrl = process.env.API_URL;
 
 const login = async (reqBody) => {
+  console.log(apiUrl);
   try {
     const response = await fetch(`http://${apiUrl}:3000/user/login`,
       {
@@ -18,7 +19,7 @@ const login = async (reqBody) => {
     const data = json.data;
 
     if (!response.ok) { 
-      throw new Error(json.message || 'Login failed');
+      throw new Error(json.error || 'Login failed');
     }    
     return data
   } catch (error) {
@@ -37,8 +38,11 @@ const authentication = async (token) => {
         },
       }
     )
+
     if (!response.ok) { 
-      throw new Error(json.message || 'Authentication failed');
+      const json = await response.json();
+      const error = json.error;
+      throw new Error(error || 'Authentication failed');
     } 
   } catch (error) {
     throw new Error(`Authentication failed: ${error.message || error}`);
@@ -63,8 +67,11 @@ const scheduleCreate = async (token, reqBody) => {
         ruangan: reqBody.ruangan,
       }),
     })
+
     if (!response.ok) { 
-      throw new Error(json.message || 'Failed to create schedule');
+      const json = await response.json();
+      const error = json.error;
+      throw new Error(error || 'Failed to create schedule');
     }
   } catch (error) {
     throw new Error(`Failed to create schedule: ${error.message || error}`);
@@ -80,8 +87,11 @@ const scheduleRemove = async (token, id_mata_kuliah) => {
         'Authorization': `${token}`,
       },
     })
+
     if (!response.ok) { 
-      throw new Error(json.message || 'Failed to remove schedule');
+      const json = await response.json();
+      const error = json.error;
+      throw new Error(error || 'Failed to remove schedule');
     }
   } catch (error) {
     throw new Error(`Failed to remove schedule: ${error.message || error}`);
@@ -102,7 +112,7 @@ const scheduleList = async () => {
     const data = json.data;
 
     if (!response.ok) { 
-      throw new Error(json.message || 'Failed to get schedules list');
+      throw new Error(json.error || 'Failed to get schedules list');
     }
     return data
   } catch (error) {
@@ -124,7 +134,7 @@ const scheduleUser = async (user) => {
     const data = json.data;
 
     if (!response.ok) { 
-      throw new Error(json.message || 'Failed to get user schedule');
+      throw new Error(json.error || 'Failed to get user schedule');
     }
     return data
   } catch (error) {

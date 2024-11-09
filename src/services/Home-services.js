@@ -20,8 +20,17 @@ const getSchedulesOnFirstLoad = async (setLoadSchedules) => {
   }
 }
 
+const schedulesPage = (schedules, page, schedulePerPage) => {
+  if (page <= 0 || Math.ceil(schedules.length / schedulePerPage) < page) {
+    console.error("Invalid page number");
+    return;
+  }
+  const startIndex = (page - 1) * schedulePerPage;
+  return schedules.slice(startIndex, startIndex + schedulePerPage);
+}
+
 // button service
-const refreshButton = async (setSchedules) => {
+const getSchedulesFromServerButton = async (setSchedules, setGetSchedulesErrorMessage) => {
   try {
     // Fetch data from server
     const schedules = await scheduleList();
@@ -31,11 +40,11 @@ const refreshButton = async (setSchedules) => {
       e.jam_mulai = e.jam_mulai.substring(0, 5)
       e.jam_selesai = e.jam_selesai.substring(0, 5)
     });
-    setSchedules(schedules);
     console.log('Fetch schedule success');
 
     // Insert data to SQLite
     await insertSchedules(schedules);
+    setGetSchedulesErrorMessage('')
     console.log('Data successfully inserted to SQLite');
 
   } catch (error) {
@@ -44,14 +53,34 @@ const refreshButton = async (setSchedules) => {
     } else {
       console.error('An error occurred: ', error);
     }
-    // Load data from SQLite if fetch failed
+    setGetSchedulesErrorMessage('Cannot connect to server')
+  } finally {
+    // Load data from SQLite
     console.log("Attempting to load data from SQLite");
     const schedules = await getSchedules();
     setSchedules(schedules);
   }
 }
 
+const nextPageScheduleButton = (setAmountPage, amountPage, setPage, page, schedules, schedulePerPage) => {
+  setAmountPage(Math.ceil(schedules.length / schedulePerPage));
+  if (page == amountPage) {
+    return;
+  }
+  setPage(page => page + 1);
+}
+
+const previousPageScheduleButton = (setPage, page) => {
+  if (page == 1) {
+    return;
+  }
+  setPage(page => page - 1);
+}
+
 export {
   getSchedulesOnFirstLoad,
-  refreshButton
+  schedulesPage,
+  getSchedulesFromServerButton,
+  nextPageScheduleButton,
+  previousPageScheduleButton
 }

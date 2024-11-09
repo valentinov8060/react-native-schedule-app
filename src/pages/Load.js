@@ -8,7 +8,7 @@ const Load = () => {
     <View style={styles.container}>
       <Image
         source={logoUnila}
-        style={styles.logo}
+        style={styles.logoUnila}
       />
       <Text style={styles.title}>Schedule App</Text>
       <ActivityIndicator size="large" color="#0000ff" />
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#1E90FF',
   },
-  logo: {
+  logoUnila: {
     width: 200,
     height: 200,
     marginBottom: 20,

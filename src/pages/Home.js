@@ -2,38 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, ScrollView, Button } from 'react-native';
 
 import { 
-  getSchedulesOnFirstLoad, 
-  refreshButton 
+  getSchedulesOnFirstLoad,
+  schedulesPage,
+  getSchedulesFromServerButton,
+  nextPageScheduleButton,
+  previousPageScheduleButton
 } from '../services/Home-services';
 
 const Home = () => {
+  // schedules
   const [schedules, setSchedules] = useState([]);
-  const [page, setPage] = useState(1);
+  /* dapat diubah untuk mengatur jumlah schedule yang muncul pada setiap page nya */
   const [schedulePerPage] = useState(10);
-  const [amountPage, setAmountPage] = useState(1);
   const [schedulesToShow, setSchedulesToShow] = useState([]);
+  const [page, setPage] = useState(1);
+  const [amountPage, setAmountPage] = useState(1);
+  const [getSchedulesErrorMessage, setGetSchedulesErrorMessage] = useState('');
 
-  const schedulesPage = (schedules, page, schedulePerPage) => {
-    if (page <= 0 || Math.ceil(schedules.length / schedulePerPage) < page) {
-      console.error("Invalid page number");
-      return;
-    }
-    const startIndex = (page - 1) * schedulePerPage;
-    return schedules.slice(startIndex, startIndex + schedulePerPage);
-  }
-  const nextPage = () => {
-    setAmountPage(Math.ceil(schedules.length / schedulePerPage));
-    if (page == amountPage) {
-      return;
-    }
-    setPage(page => page + 1);
-  }
-  const previousPage = () => {
-    if (page == 1) {
-      return;
-    }
-    setPage(page => page - 1);
-  }
+  useEffect(() => {
+    getSchedulesOnFirstLoad(setSchedules);
+  }, []);
 
   useEffect(() => {
     if (schedules.length == 0){
@@ -41,10 +29,6 @@ const Home = () => {
     }
     setSchedulesToShow(schedulesPage(schedules, page, schedulePerPage));
   }, [schedules, page]);
-
-  useEffect(() => {
-    getSchedulesOnFirstLoad(setSchedules);
-  }, []);
 
   const schedulesView = () => {
     const schedulesNotAvailable = (
@@ -85,12 +69,12 @@ const Home = () => {
           <View style={styles.paginationContainer}>
             <Button 
               title="<="
-              onPress={() => previousPage()}
+              onPress={() => previousPageScheduleButton(setPage, page)}
             />
             <Text style={styles.paginationNumber}>{page}</Text>
             <Button 
               title="=>"
-              onPress={() => nextPage()}
+              onPress={() => nextPageScheduleButton(setAmountPage, amountPage, setPage, page, schedules, schedulePerPage)}
             />
           </View>
       </View>
@@ -99,10 +83,11 @@ const Home = () => {
     return (
       <View style={styles.content}>
         <Button
-          title="Refresh"
-          onPress={() => refreshButton(setSchedules)}
+          title="Get schedules from server"
+          onPress={() => getSchedulesFromServerButton(setSchedules, setGetSchedulesErrorMessage)}
         />
         {schedules.length == 0 ? schedulesNotAvailable : schedulesAvailable}
+        {Boolean(getSchedulesErrorMessage) && <Text style={styles.errorText}>{getSchedulesErrorMessage}</Text>}
       </View>
     )
   };
@@ -207,5 +192,14 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#eee',
     borderRadius: 5,
+  },
+  errorText: {
+    borderWidth: 1,
+    padding: 7,
+    borderRadius: 7,
+    borderColor: 'red',
+    backgroundColor: '#f4cccc',
+    color: 'black',
+    textAlign: 'center',
   },
 });

@@ -12,6 +12,7 @@ import {
   getUserSchedules,
   deleteButton
 } from '../services/Profile-services';
+import { handleInput } from '../utils/form';
 
 const logoUnila = require('../../assets/images/logo-unila.png');
 
@@ -37,7 +38,7 @@ const Profile = () => {
     jam_selesai: '',
     ruangan: ''
   });
-  const [selectedHourJamMulai, setSelectedHourJamMulai] = useState('00');
+  const [selectedHourJamMulai, setSelectedHourJamMulai] = useState('07');
   const [selectedMinuteJamMulai, setSelectedMinuteJamMulai] = useState('00');
   const [selectedHourJamSelesai, setSelectedHourJamSelesai] = useState('00');
   const [selectedMinuteJamSelesai, setSelectedMinuteJamSelesai] = useState('00');
@@ -47,35 +48,6 @@ const Profile = () => {
   // User schedules
   const [userSchedules, setUserSchedules] = useState([]);
 
-  // Function
-  const handleInput = (setter, name, value) => {
-    setter(prevValue => ({
-      ...prevValue,
-      [name]: value
-    }));
-  };
-
-  const deleteAlert = (id_mata_kuliah) => {
-    Alert.alert(
-      "Konfirmasi",
-      "Apakah Anda yakin ingin menghapus jadwal ini?",
-      [
-        {
-          text: "Batal",
-          style: "cancel"
-        },
-        { 
-          text: "OK", 
-          onPress: () => {
-            deleteButton(id_mata_kuliah) 
-            getUserSchedules(setUserSchedules);
-          }
-        }
-      ],
-      { cancelable: false }
-    );
-  };
-
   // useEffect
   useEffect(() => {
     checkTokenOnLoad(setLoginPage);
@@ -84,6 +56,7 @@ const Profile = () => {
   useEffect(() => {
     if (loginPage === false) {
       getUserSchedules(setUserSchedules);
+      setLoginErrorMessage('');
     }
   }, [loginPage]);
 
@@ -98,7 +71,7 @@ const Profile = () => {
     }
   }, [selectedHourJamMulai, selectedMinuteJamMulai, selectedHourJamSelesai, selectedMinuteJamSelesai]);
 
-  // Page view
+  // Table user schedule view
   const userSchedulesView = () => {
     const userSchedulesNotAvailable = (
       <Text style={styles.noSchedule}>
@@ -129,7 +102,26 @@ const Profile = () => {
                   <Text style={styles.tableCell}>{item.jam_mulai + " - " + item.jam_selesai}</Text>
                   <Text style={styles.tableCell}>{item.ruangan}</Text>
                   <Text style={styles.tableCell}>
-                    <TouchableOpacity onPress={() => deleteAlert(item.id_mata_kuliah)}>
+                    <TouchableOpacity onPress={() => 
+                      Alert.alert(
+                        "Konfirmasi",
+                        "Apakah Anda yakin ingin menghapus jadwal ini?",
+                        [
+                          {
+                            text: "Batal",
+                            style: "cancel"
+                          },
+                          { 
+                            text: "OK", 
+                            onPress: () => {
+                              deleteButton(item.id_mata_kuliah) 
+                              getUserSchedules(setUserSchedules);
+                            }
+                          }
+                        ],
+                        { cancelable: false }
+                      )
+                    }>
                       <Icon name="delete" type="material" size={24} />
                     </TouchableOpacity>
                   </Text>
@@ -143,7 +135,7 @@ const Profile = () => {
     )
 
     return (
-      <View style={styles.content}>
+      <View style={styles.tabelUserSchedules}>
         {userSchedules.length == 0 ? userSchedulesNotAvailable : userSchedulesAvailable}
       </View>
     )
@@ -151,14 +143,14 @@ const Profile = () => {
 
   const pageView = () => {
     if (loginPage === true) {
+      // Login page view
       return (
-        // Login page
         <View style={styles.loginPage}>
           <Image
             source={logoUnila}
             style={styles.logo}
           />
-          
+
           <View style={styles.inputContainer}>
             <Icon name="person" type="material" size={24} style={styles.iconLogin} />
             <TextInput
@@ -190,8 +182,8 @@ const Profile = () => {
         </View>
       )
     } else if (loginPage === false) {
+      // Profile page view
       return (
-        // Profile page
         <View style={styles.profilePage}>
           <Text style={styles.titleHeader}>
             Jadwal Kuliah Anda
@@ -311,7 +303,7 @@ const Profile = () => {
                     <TouchableOpacity
                       style={[styles.modalButton, styles.modalButtonSubmit]}
                       onPress={() => {
-                        submitButton(reqBodyScheduleCreate, setModalVisible)
+                        submitButton(reqBodyScheduleCreate, setModalVisible, setReqBodyScheduleCreate)
                         getUserSchedules(setUserSchedules)
                       }}
                     >
@@ -350,7 +342,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     backgroundColor: '#fff',
   },
-  // page
+  // login page
   loginPage: {
     flex: 1,
     justifyContent: 'center',
@@ -359,7 +351,6 @@ const styles = StyleSheet.create({
   profilePage: {
     flex: 1,
   },
-  // login page
   logo: {
     width: 200,
     height: 200,
@@ -383,6 +374,8 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 20,
     borderWidth: 1,
+    padding: 7,
+    borderRadius: 7,
     borderColor: 'red',
     backgroundColor: '#f4cccc',
     color: 'black',
@@ -402,7 +395,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-  // modal input jadwal kuliah
+  // modal input schedule
   centeredView: {
     flex: 1,
     justifyContent: 'center',
@@ -463,7 +456,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     width: 250,
   },
-  // jam input modal
   pickerJamContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -477,11 +469,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
 
-  // content
-  content: {
+  // user schedules
+  tabelUserSchedules: {
     flex: 1,
   },
-  // schedules content
   schedule: {
     flex: 1,
     marginTop: 20,
@@ -523,7 +514,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     width: 100,
   },
-  // no schedule content
+  // no user schedule
   noSchedule: {
     marginTop: 20,
     borderWidth: 1,

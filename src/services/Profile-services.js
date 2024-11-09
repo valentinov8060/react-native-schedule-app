@@ -1,3 +1,5 @@
+import { Alert } from 'react-native';
+
 import { jwtDecode } from "jwt-decode";
 
 import {
@@ -62,7 +64,7 @@ const loginButton = async (reqBody, setLoginPage, setLoginErrorMessage) => {
     const response = await Promise.race([
       login(reqBody),
       new Promise((resolve, reject) => 
-        setTimeout(() => reject(new Error('Timeout: Cannot connect to server')), 5000)
+        setTimeout(() => reject(new Error('Cannot connect to server')), 5000)
       )
     ]);
     const token = response.token;
@@ -72,12 +74,19 @@ const loginButton = async (reqBody, setLoginPage, setLoginErrorMessage) => {
     await checkToken();
     console.log('Login success, token: ', token);
 
+    setLoginErrorMessage('');
     setLoginPage(false);
   } catch (error) {
     if (error.message) {
       console.error('Error: ', error.message);
     } else {
       console.error('An error occurred: ', error);
+    }
+
+    if (error.message !== 'Cannot connect to server') {
+      setLoginErrorMessage('username or password is wrong');
+    } else {
+      setLoginErrorMessage('Cannot connect to server');
     }
     setLoginPage(true);
   }
@@ -97,7 +106,15 @@ const logoutButton = async (setLoginPage) => {
   }
 }
 
-const submitButton = async (reqBody, setModalVisible) => {
+const submitButton = async (reqBody, setModalVisible, setReqBodyScheduleCreate) => {
+  // Form validation
+  const { mata_kuliah, nama_kelas, sks, hari, ruangan, jam_mulai, jam_selesai } = reqBody;
+  const isFormComplete = mata_kuliah && nama_kelas && sks && hari && jam_mulai && jam_selesai && ruangan;
+  if (!isFormComplete) {
+    Alert.alert("Semua input harus diisi!");
+    return;
+  }
+
   try {
     const token = await checkToken();
 
@@ -105,12 +122,15 @@ const submitButton = async (reqBody, setModalVisible) => {
     const response = await scheduleCreate(token, reqBody);
     console.log('Create schedule success: ', response);
     setModalVisible(false);
+    Alert.alert("Jadwal berhasil ditambahkan!");
+    setReqBodyScheduleCreate({});
   } catch (error) {
     if (error.message) {
-      console.error('Error: ', error.message);
+      console.error('Error: ', error);
     } else {
       console.error('An error occurred: ', error);
     }
+    Alert.alert(`${error.message}`);
   }
 }
 
