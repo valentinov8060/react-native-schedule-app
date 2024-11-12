@@ -10,7 +10,8 @@ import {
   logoutButton,
   submitButton,
   getUserSchedules,
-  deleteButton
+  deleteButton,
+  editButton
 } from '../services/Profile-services';
 import { handleInput } from '../utils/form';
 
@@ -28,7 +29,7 @@ const Profile = () => {
   const [loginErrorMessage, setLoginErrorMessage] = useState('');
 
   // Input jadwal modal
-  const [modalVisible, setModalVisible] = useState(false);
+  const [inputModalVisible, setInputModalVisible] = useState(false);
   const [reqBodyScheduleCreate, setReqBodyScheduleCreate] = useState({
     mata_kuliah: '',
     nama_kelas: '',
@@ -44,6 +45,18 @@ const Profile = () => {
   const [selectedMinuteJamSelesai, setSelectedMinuteJamSelesai] = useState('00');
   const hours = Array.from({ length: 12 }, (_, i) => (i + 7).toString().padStart(2, '0'));
   const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
+
+  // Edit jadwal modal
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [reqBodyScheduleEdit, setReqBodyScheduleEdit] = useState({
+    mata_kuliah: '',
+    nama_kelas: '',
+    sks: '',
+    hari: '',
+    jam_mulai: '',
+    jam_selesai: '',
+    ruangan: ''
+  });
 
   // User schedules
   const [userSchedules, setUserSchedules] = useState([]);
@@ -61,13 +74,21 @@ const Profile = () => {
   }, [loginPage]);
 
   useEffect(() => {
-    if (modalVisible === true) {
+    if (inputModalVisible === true) {
       if (selectedHourJamMulai > selectedHourJamSelesai || (selectedHourJamMulai === selectedHourJamSelesai && selectedMinuteJamMulai > selectedMinuteJamSelesai) || (selectedHourJamMulai === selectedHourJamSelesai && selectedMinuteJamMulai === selectedMinuteJamSelesai)) {
         Alert.alert('Error', 'Jam mulai harus lebih kecil dari jam selesai');
         return;
       } 
       handleInput(setReqBodyScheduleCreate, 'jam_mulai', `${selectedHourJamMulai}${selectedMinuteJamMulai}00`);
       handleInput(setReqBodyScheduleCreate, 'jam_selesai', `${selectedHourJamSelesai}${selectedMinuteJamSelesai}00`);
+    }
+    if (editModalVisible === true) {
+      if (selectedHourJamMulai > selectedHourJamSelesai || (selectedHourJamMulai === selectedHourJamSelesai && selectedMinuteJamMulai > selectedMinuteJamSelesai) || (selectedHourJamMulai === selectedHourJamSelesai && selectedMinuteJamMulai === selectedMinuteJamSelesai)) {
+        Alert.alert('Error', 'Jam mulai harus lebih kecil dari jam selesai');
+        return;
+      }
+      handleInput(setReqBodyScheduleEdit, 'jam_mulai', `${selectedHourJamMulai}${selectedMinuteJamMulai}00`);
+      handleInput(setReqBodyScheduleEdit, 'jam_selesai', `${selectedHourJamSelesai}${selectedMinuteJamSelesai}00`);
     }
   }, [selectedHourJamMulai, selectedMinuteJamMulai, selectedHourJamSelesai, selectedMinuteJamSelesai]);
 
@@ -89,8 +110,10 @@ const Profile = () => {
               <Text style={styles.tableHeaderCell}>Hari</Text>
               <Text style={styles.tableHeaderCell}>Jam</Text>
               <Text style={styles.tableHeaderCell}>Ruangan</Text>
-              <Text style={styles.tableHeaderCell}>Tools</Text>
+              <Text style={styles.tableHeaderCell}>Edit</Text>
+              <Text style={styles.tableHeaderCell}>Remove</Text>
             </View>
+            
             <FlatList
               data={userSchedules}
               renderItem={({ item }) => (
@@ -99,38 +122,167 @@ const Profile = () => {
                   <Text style={styles.tableCell}>{item.nama_kelas}</Text>
                   <Text style={styles.tableCell}>{item.sks}</Text>
                   <Text style={styles.tableCell}>{item.hari}</Text>
-                  <Text style={styles.tableCell}>{item.jam_mulai + " - " + item.jam_selesai}</Text>
+                  <Text style={styles.tableCell}>{`${item.jam_mulai} - ${item.jam_selesai}`}</Text>
                   <Text style={styles.tableCell}>{item.ruangan}</Text>
                   <Text style={styles.tableCell}>
-                    <TouchableOpacity onPress={() => 
-                      Alert.alert(
-                        "Konfirmasi",
-                        "Apakah Anda yakin ingin menghapus jadwal ini?",
-                        [
-                          {
-                            text: "Batal",
-                            style: "cancel"
-                          },
-                          { 
-                            text: "OK", 
-                            onPress: () => {
+                    <TouchableOpacity
+                      onPress={() => {
+                        setEditModalVisible(true);
+                        setReqBodyScheduleEdit(item); // Set the item to edit
+                        setSelectedHourJamMulai(item.jam_mulai.split(":")[0]);
+                        setSelectedMinuteJamMulai(item.jam_mulai.split(":")[1]);
+                        setSelectedHourJamSelesai(item.jam_selesai.split(":")[0]);
+                        setSelectedMinuteJamSelesai(item.jam_selesai.split(":")[1]);
+                      }}
+                    >
+                      <Icon name="edit" type="material" size={24} />
+                    </TouchableOpacity>
+                  </Text>
+                  <Text style={styles.tableCell}>
+                    <TouchableOpacity
+                      onPress={() =>
+                        Alert.alert(
+                          "Konfirmasi",
+                          "Apakah Anda yakin ingin menghapus jadwal ini?",
+                          [
+                            { text: "Batal", style: "cancel" },
+                            { text: "OK", onPress: () => {
                               deleteButton(item.id_mata_kuliah) 
-                              getUserSchedules(setUserSchedules);
+                              getUserSchedules(setUserSchedules)
                             }
-                          }
-                        ],
-                        { cancelable: false }
-                      )
-                    }>
+                          },
+                          ],
+                          { cancelable: false }
+                        )
+                      }
+                    >
                       <Icon name="delete" type="material" size={24} />
                     </TouchableOpacity>
                   </Text>
                 </View>
               )}
-              keyExtractor={item => item.nama_kelas}
+              keyExtractor={(item) => item.id_mata_kuliah.toString()}
             />
           </View>
         </ScrollView>
+
+        {/* Modal Edit Schedule */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={editModalVisible}
+          onRequestClose={() => setEditModalVisible(false)}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <ScrollView contentContainerStyle={styles.modalScrollView}>
+                <Text style={styles.modalText}>Form Edit Jadwal Kuliah</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Mata Kuliah"
+                  value={reqBodyScheduleEdit.mata_kuliah}
+                  onChangeText={(value) => handleInput(setReqBodyScheduleEdit, 'mata_kuliah', value)}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Nama Kelas"
+                  value={reqBodyScheduleEdit.nama_kelas}
+                  onChangeText={(value) => handleInput(setReqBodyScheduleEdit, 'nama_kelas', value)}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="SKS"
+                  value={reqBodyScheduleEdit.sks}
+                  keyboardType="numeric"
+                  onChangeText={(value) => handleInput(setReqBodyScheduleEdit, 'sks', value)}
+                />
+                <Picker
+                  style={styles.input}
+                  mode="dropdown"
+                  selectedValue={reqBodyScheduleEdit.hari}
+                  onValueChange={(itemValue) => handleInput(setReqBodyScheduleEdit, 'hari', itemValue)}
+                >
+                  <Picker.Item label="Pilih Hari:" />
+                  <Picker.Item label="Senin" value="Senin" />
+                  <Picker.Item label="Selasa" value="Selasa" />
+                  <Picker.Item label="Rabu" value="Rabu" />
+                  <Picker.Item label="Kamis" value="Kamis" />
+                  <Picker.Item label="Jumat" value="Jumat" />
+                  <Picker.Item label="Sabtu" value="Sabtu" />
+                </Picker>
+                <Text>Jam Mulai : {`${selectedHourJamMulai}:${selectedMinuteJamMulai}`}</Text>
+                <View style={styles.pickerClockContainer}>
+                  <Picker
+                    selectedValue={selectedHourJamMulai}
+                    style={styles.clockPicker}
+                    onValueChange={(itemValue) => setSelectedHourJamMulai(itemValue)}
+                  >
+                    {hours.map((hour) => (
+                      <Picker.Item key={hour} label={hour} value={hour} />
+                    ))}
+                  </Picker>
+                  <Text style={styles.separatorJam}>:</Text>
+                  <Picker
+                    selectedValue={selectedMinuteJamMulai}
+                    style={styles.clockPicker}
+                    onValueChange={(itemValue) => setSelectedMinuteJamMulai(itemValue)}
+                  >
+                    {minutes.map((minute) => (
+                      <Picker.Item key={minute} label={minute} value={minute} />
+                    ))}
+                  </Picker>
+                </View>
+                <Text>Jam Selesai : {`${selectedHourJamSelesai}:${selectedMinuteJamSelesai}`}</Text>
+                <View style={styles.pickerClockContainer}>
+                  <Picker
+                    selectedValue={selectedHourJamSelesai}
+                    style={styles.clockPicker}
+                    onValueChange={(itemValue) => setSelectedHourJamSelesai(itemValue)}
+                  >
+                    {hours.map((hour) => (
+                      <Picker.Item key={hour} label={hour} value={hour} />
+                    ))}
+                  </Picker>
+                  <Text style={styles.separatorJam}>:</Text>
+                  <Picker
+                    selectedValue={selectedMinuteJamSelesai}
+                    style={styles.clockPicker}
+                    onValueChange={(itemValue) => setSelectedMinuteJamSelesai(itemValue)}
+                  >
+                    {minutes.map((minute) => (
+                      <Picker.Item key={minute} label={minute} value={minute} />
+                    ))}
+                  </Picker>
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ruangan"
+                  value={reqBodyScheduleEdit.ruangan}
+                  onChangeText={(value) => handleInput(setReqBodyScheduleEdit, 'ruangan', value)}
+                />
+                
+                {/* Buttons for Edit Modal */}
+                <View style={styles.modalButtonContainer}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.modalButtonSubmit]}
+                    onPress={() => {
+                      editButton(reqBodyScheduleEdit, reqBodyScheduleEdit.id_mata_kuliah, setEditModalVisible);
+                      getUserSchedules(setUserSchedules);
+                    }}
+                  >
+                    <Text style={styles.textStyle}>Submit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.modalButtonCancel]}
+                    onPress={() => setEditModalVisible(false)}
+                  >
+                    <Text style={styles.textStyle}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
       </View>
     )
 
@@ -192,7 +344,7 @@ const Profile = () => {
             <Button 
               color="#00ff7f"
               title="Input Jadwal" 
-              onPress={() => setModalVisible(true)}
+              onPress={() => setInputModalVisible(true)}
             />
             <Button 
               color="red"
@@ -204,9 +356,9 @@ const Profile = () => {
           <Modal
             animationType="slide"
             transparent={true}
-            visible={modalVisible}
+            visible={inputModalVisible}
             onRequestClose={() => {
-              setModalVisible(false);
+              setInputModalVisible(false);
             }}
           >
             <View style={styles.centeredView}>
@@ -233,9 +385,9 @@ const Profile = () => {
                     onChangeText={(value) => handleInput(setReqBodyScheduleCreate, 'sks', value)}
                   />
                   <Picker
+                    style={styles.input}
                     mode="dropdown"
                     selectedValue={reqBodyScheduleCreate.hari}
-                    style={styles.input}
                     onValueChange={(itemValue, itemIndex) =>
                       handleInput(setReqBodyScheduleCreate, 'hari', itemValue)
                     }
@@ -249,10 +401,10 @@ const Profile = () => {
                     <Picker.Item label="Sabtu" value="Sabtu" />
                   </Picker>
                   <Text>Jam Mulai : {`${selectedHourJamMulai}:${selectedMinuteJamMulai}`}</Text>
-                  <View style={styles.pickerJamContainer}>
+                  <View style={styles.pickerClockContainer}>
                     <Picker
+                      style={styles.clockPicker}
                       selectedValue={selectedHourJamMulai}
-                      style={styles.jamPicker}
                       onValueChange={(itemValue) => setSelectedHourJamMulai(itemValue)}
                     >
                       {hours.map((hour) => (
@@ -262,7 +414,7 @@ const Profile = () => {
                     <Text style={styles.separatorJam}>:</Text>
                     <Picker
                       selectedValue={selectedMinuteJamMulai}
-                      style={styles.jamPicker}
+                      style={styles.clockPicker}
                       onValueChange={(itemValue) => setSelectedMinuteJamMulai(itemValue)}
                     >
                       {minutes.map((minute) => (
@@ -271,10 +423,10 @@ const Profile = () => {
                     </Picker>
                   </View>
                   <Text>Jam Selesai : {`${selectedHourJamSelesai}:${selectedMinuteJamSelesai}`}</Text>
-                  <View style={styles.pickerJamContainer}>
+                  <View style={styles.pickerClockContainer}>
                     <Picker
                       selectedValue={selectedHourJamSelesai}
-                      style={styles.jamPicker}
+                      style={styles.clockPicker}
                       onValueChange={(itemValue) => setSelectedHourJamSelesai(itemValue)}
                     >
                       {hours.map((hour) => (
@@ -284,7 +436,7 @@ const Profile = () => {
                     <Text style={styles.separatorJam}>:</Text>
                     <Picker
                       selectedValue={selectedMinuteJamSelesai}
-                      style={styles.jamPicker}
+                      style={styles.clockPicker}
                       onValueChange={(itemValue) => setSelectedMinuteJamSelesai(itemValue)}
                     >
                       {minutes.map((minute) => (
@@ -303,7 +455,7 @@ const Profile = () => {
                     <TouchableOpacity
                       style={[styles.modalButton, styles.modalButtonSubmit]}
                       onPress={() => {
-                        submitButton(reqBodyScheduleCreate, setModalVisible, setReqBodyScheduleCreate)
+                        submitButton(reqBodyScheduleCreate, setInputModalVisible, setReqBodyScheduleCreate)
                         getUserSchedules(setUserSchedules)
                       }}
                     >
@@ -311,7 +463,7 @@ const Profile = () => {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.modalButton, styles.modalButtonCancel]}
-                      onPress={() => setModalVisible(false)}
+                      onPress={() => setInputModalVisible(false)}
                     >
                       <Text style={styles.textStyle}>Cancel</Text>
                     </TouchableOpacity>
@@ -456,11 +608,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     width: 250,
   },
-  pickerJamContainer: {
+  pickerClockContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  jamPicker: {
+  clockPicker: {
     height: 50,
     width: 100,
   },

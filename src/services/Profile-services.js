@@ -10,6 +10,7 @@ import {
 import {
   login,
   scheduleCreate,
+  scheduleUpdate,
   scheduleRemove,
   scheduleUser
 } from '../controllers/server-controller';
@@ -72,7 +73,7 @@ const loginButton = async (reqBody, setLoginPage, setLoginErrorMessage) => {
     // Save token to SQLite
     await insertToken(token);
     await checkToken();
-    console.log('Login success, token: ', token);
+    console.log('Login success');
 
     setLoginErrorMessage('');
     setLoginPage(false);
@@ -106,7 +107,7 @@ const logoutButton = async (setLoginPage) => {
   }
 }
 
-const submitButton = async (reqBody, setModalVisible, setReqBodyScheduleCreate) => {
+const submitButton = async (reqBody, setInputModalVisible, setReqBodyScheduleCreate) => {
   // Form validation
   const { mata_kuliah, nama_kelas, sks, hari, ruangan, jam_mulai, jam_selesai } = reqBody;
   const isFormComplete = mata_kuliah && nama_kelas && sks && hari && jam_mulai && jam_selesai && ruangan;
@@ -121,7 +122,7 @@ const submitButton = async (reqBody, setModalVisible, setReqBodyScheduleCreate) 
     // Create schedule on server 
     const response = await scheduleCreate(token, reqBody);
     console.log('Create schedule success: ', response);
-    setModalVisible(false);
+    setInputModalVisible(false);
     Alert.alert("Jadwal berhasil ditambahkan!");
     setReqBodyScheduleCreate({});
   } catch (error) {
@@ -150,11 +151,31 @@ const deleteButton = async (id_mata_kuliah) => {
   }
 }
 
+const editButton = async (reqBody, id_mata_kuliah, setEditModalVisible) => {
+  try {
+    const token = await checkToken();
+
+    // Update schedule on server
+    await scheduleUpdate(token, id_mata_kuliah, reqBody);
+    setEditModalVisible(false);
+    Alert.alert("Jadwal berhasil diubah!");
+    console.log('Update schedule success');
+  } catch (error) {
+    if (error.message) {
+      console.error('Error: ', error.message);
+    } else {
+      console.error('An error occurred: ', error);
+    }
+    Alert.alert(`${error.message}`);
+  }
+}
+
 export {
   checkTokenOnLoad,
   getUserSchedules,
   loginButton,
   logoutButton,
   submitButton,
-  deleteButton
+  deleteButton,
+  editButton
 }

@@ -1,7 +1,6 @@
 const apiUrl = process.env.API_URL;
 
 const login = async (reqBody) => {
-  console.log(apiUrl);
   try {
     const response = await fetch(`http://${apiUrl}:3000/user/login`,
       {
@@ -78,6 +77,35 @@ const scheduleCreate = async (token, reqBody) => {
   }
 }
 
+const scheduleUpdate = async (token, id_mata_kuliah, reqBody) => {
+  try {
+    const response = await fetch(`http://${apiUrl}:3000/schedule/update/${id_mata_kuliah}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `${token}`,
+      },
+      body: JSON.stringify({
+        mata_kuliah: reqBody.mata_kuliah,
+        nama_kelas: reqBody.nama_kelas,
+        sks: reqBody.sks,
+        hari: reqBody.hari,
+        jam_mulai: reqBody.jam_mulai,
+        jam_selesai: reqBody.jam_selesai,
+        ruangan: reqBody.ruangan,
+      }),
+    })
+
+    if (!response.ok) {
+      const json = await response.json();
+      const error = json.error;
+      throw new Error(error || 'Failed to update schedule');
+    }
+  } catch (error) {
+    throw new Error(`Failed to update schedule: ${error.message || error}`);
+  }
+}
+
 const scheduleRemove = async (token, id_mata_kuliah) => {
   try {
     const response = await fetch(`http://${apiUrl}:3000/schedule/remove/${id_mata_kuliah}`, {
@@ -146,6 +174,7 @@ export {
   login,
   authentication,
   scheduleCreate,
+  scheduleUpdate,
   scheduleRemove,
   scheduleList,
   scheduleUser
